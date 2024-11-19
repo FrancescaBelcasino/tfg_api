@@ -15,9 +15,10 @@ import org.tfg.api.servicio.InventarioGranosServicio;
 import org.tfg.api.servicio.InventarioSemillasServicio;
 import org.tfg.api.servicio.UsuarioServicio;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
+import static java.util.Collections.singletonList;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @RestController
@@ -28,6 +29,8 @@ public class Controlador {
     private UsuarioServicio usuarioServicio;
     private InventarioSemillasServicio inventarioSemillasServicio;
     private InventarioGranosServicio inventarioGranosServicio;
+
+    // Endpoints para registro e inicio de sesión genéricos
 
     @PostMapping("/usuarios/registrar-usuario")
     public ResponseEntity<IdRespuesta> registrarUsuario(@RequestBody RegistrarUsuarioSolicitud solicitud) {
@@ -43,16 +46,11 @@ public class Controlador {
                 .orElse(ResponseEntity.badRequest().build());
     }
 
-    @PostMapping("/inventarios/semillas/registrar-semillas")
+    // Endpoints para Inventario de Semillas
+
+    @PostMapping("/inventarios/semillas")
     public ResponseEntity<IdRespuesta> registrarSemillas(@RequestBody RegistrarSemillasSolicitud solicitud) {
         String id = inventarioSemillasServicio.registrarSemillas(solicitud);
-
-        return ResponseEntity.ok(new IdRespuesta(id));
-    }
-
-    @PostMapping("/inventarios/granos/registrar-granos")
-    public ResponseEntity<IdRespuesta> registrarGranos(@RequestBody RegistrarGranosSolicitud solicitud) {
-        String id = inventarioGranosServicio.registrarGranos(solicitud);
 
         return ResponseEntity.ok(new IdRespuesta(id));
     }
@@ -64,6 +62,46 @@ public class Controlador {
         return ResponseEntity.ok(new ResultadosRespuesta(semillas));
     }
 
+    @GetMapping("/inventarios/semillas/{id}")
+    public ResponseEntity<ResultadosRespuesta> mostrarSemilla(@PathVariable String id) {
+
+        InventarioSemillas semilla = inventarioSemillasServicio.mostrarSemilla(id);
+
+        if (semilla == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(new ResultadosRespuesta(singletonList(semilla)));
+    }
+
+    @PatchMapping("/inventarios/semillas/{id}")
+    public ResponseEntity<IdRespuesta> actualizarSemilla(@PathVariable String id, @RequestBody RegistrarSemillasSolicitud solicitud) {
+        return Optional.ofNullable(inventarioSemillasServicio.actualizarSemilla(id, solicitud))
+                .map(idSemilla -> ResponseEntity.ok(new IdRespuesta(idSemilla)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/inventarios/semillas/{id}")
+    public ResponseEntity<ResultadosRespuesta> eliminarSemilla(@PathVariable String id) {
+        boolean semillaEliminada = inventarioSemillasServicio.eliminarSemilla(id);
+
+        if (!semillaEliminada) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.noContent().build();
+
+    }
+
+    // Endpoints para inventario de granos
+
+    @PostMapping("/inventarios/granos")
+    public ResponseEntity<IdRespuesta> registrarGranos(@RequestBody RegistrarGranosSolicitud solicitud) {
+        String id = inventarioGranosServicio.registrarGranos(solicitud);
+
+        return ResponseEntity.ok(new IdRespuesta(id));
+    }
+
     @GetMapping("/inventarios/granos")
     public ResponseEntity<ResultadosRespuesta> mostrarGranos() {
         List<InventarioGranos> granos = inventarioGranosServicio.mostrarGranos();
@@ -71,33 +109,22 @@ public class Controlador {
         return ResponseEntity.ok(new ResultadosRespuesta(granos));
     }
 
-    // Endpoint para obtener las semillas por año de adquisición
-    @GetMapping("/reportes/semillas-por-anio/{anio}")
-    public List<InventarioSemillas> obtenerSemillasPorAnio(@PathVariable int anio) {
-        return inventarioSemillasServicio.obtenerSemillasPorAnio(anio);
+    @GetMapping("/inventarios/granos/{id}")
+    public ResponseEntity<ResultadosRespuesta> mostrarGrano() {
+
+        return ResponseEntity.ok(new ResultadosRespuesta(null));
     }
 
-    // Endpoint para obtener las semillas por rango de fechas
-    @GetMapping("/reportes/semillas-por-fechas")
-    public List<InventarioSemillas> obtenerSemillasPorRangoFechas(@RequestParam String startDate, @RequestParam String endDate) {
-        LocalDate start = LocalDate.parse(startDate);
-        LocalDate end = LocalDate.parse(endDate);
-        return inventarioSemillasServicio.obtenerSemillasPorRangoFechas(start, end);
+    @PatchMapping("/inventarios/granos/{id}")
+    public ResponseEntity<IdRespuesta> actualizarGrano(@PathVariable String id, @RequestBody RegistrarGranosSolicitud solicitud) {
+        return Optional.ofNullable(inventarioGranosServicio.actualizarGrano(id, solicitud))
+                .map(idg -> ResponseEntity.ok(new IdRespuesta(idg)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // Endpoint para obtener las semillas por año de adquisición
-    @GetMapping("/reportes/granos-por-anio/{anio}")
-    public List<InventarioGranos> obtenerGranosPorAnio(@PathVariable int anio) {
-        return inventarioGranosServicio.obtenerGranosPorAnio(anio);
+    @DeleteMapping("/inventarios/granos/{id}")
+    public ResponseEntity<ResultadosRespuesta> eliminarGrano() {
+
+        return ResponseEntity.ok(new ResultadosRespuesta(null));
     }
-
-    // Endpoint para obtener las semillas por rango de fechas
-    @GetMapping("/reportes/granos-por-fechas")
-    public List<InventarioGranos> obtenerGranosPorRangoFechas(@RequestParam String startDate, @RequestParam String endDate) {
-        LocalDate start = LocalDate.parse(startDate);
-        LocalDate end = LocalDate.parse(endDate);
-        return inventarioGranosServicio.obtenerGranosPorRangoFechas(start, end);
-    }
-
-
 }

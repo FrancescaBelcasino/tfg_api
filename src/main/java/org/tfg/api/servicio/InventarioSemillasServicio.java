@@ -6,8 +6,8 @@ import org.tfg.api.modelo.dto.solicitud.RegistrarSemillasSolicitud;
 import org.tfg.api.modelo.entidad.InventarioSemillas;
 import org.tfg.api.repositorio.InventarioSemillasRepositorio;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -32,12 +32,34 @@ public class InventarioSemillasServicio {
         return inventarioSemillasRepositorio.findAll();
     }
 
-    public List<InventarioSemillas> obtenerSemillasPorAnio(int anio) {
-        return inventarioSemillasRepositorio.obtenerSemillasPorAnio(anio);
+    public InventarioSemillas mostrarSemilla(String id) {
+        return inventarioSemillasRepositorio.findById(id).orElse(null);
     }
 
-    public List<InventarioSemillas> obtenerSemillasPorRangoFechas(LocalDate fechaInicio, LocalDate fechaFin) {
-        return inventarioSemillasRepositorio.obtenerSemillasPorRangoFecha(fechaInicio, fechaFin);
+    public String actualizarSemilla(String id, RegistrarSemillasSolicitud solicitud) {
+        return inventarioSemillasRepositorio.findById(id)
+                .map(semilla -> semilla.toBuilder()
+                        .semilla(solicitud.getSemilla())
+                        .variedad(solicitud.getVariedad())
+                        .cantidadDisponible(solicitud.getCantidadDisponible())
+                        .fechaAdquisicion(solicitud.getFechaAdquisicion())
+                        .fechaExpiracion(solicitud.getFechaExpiracion())
+                        .build())
+                .map(semilla -> inventarioSemillasRepositorio.save(semilla))
+                .map(InventarioSemillas::getId)
+                .orElse(null);
+    }
+
+    public boolean eliminarSemilla(String id) {
+        Optional<InventarioSemillas> optionalSemilla = inventarioSemillasRepositorio.findById(id);
+
+        if (!optionalSemilla.isPresent()) {
+            return false;
+        }
+
+        inventarioSemillasRepositorio.deleteById(id);
+
+        return true;
     }
 
 }
