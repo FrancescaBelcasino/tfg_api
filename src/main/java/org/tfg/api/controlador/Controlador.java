@@ -5,15 +5,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.tfg.api.modelo.dto.respuesta.IdRespuesta;
 import org.tfg.api.modelo.dto.respuesta.ResultadosRespuesta;
-import org.tfg.api.modelo.dto.solicitud.IniciarSesionSolicitud;
-import org.tfg.api.modelo.dto.solicitud.RegistrarGranosSolicitud;
-import org.tfg.api.modelo.dto.solicitud.RegistrarSemillasSolicitud;
-import org.tfg.api.modelo.dto.solicitud.RegistrarUsuarioSolicitud;
+import org.tfg.api.modelo.dto.solicitud.*;
+import org.tfg.api.modelo.entidad.Campo;
 import org.tfg.api.modelo.entidad.InventarioGranos;
 import org.tfg.api.modelo.entidad.InventarioSemillas;
-import org.tfg.api.servicio.InventarioGranosServicio;
-import org.tfg.api.servicio.InventarioSemillasServicio;
-import org.tfg.api.servicio.UsuarioServicio;
+import org.tfg.api.modelo.entidad.Parcela;
+import org.tfg.api.servicio.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,10 +24,12 @@ import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 public class Controlador {
     private UsuarioServicio usuarioServicio;
+    private CampoServicio campoServicio;
+    private ParcelaServicio parcelaServicio;
     private InventarioSemillasServicio inventarioSemillasServicio;
     private InventarioGranosServicio inventarioGranosServicio;
 
-    // Endpoints para registro e inicio de sesión genéricos
+    // Endpoints para Registro e Inicio de Sesión Genéricos
 
     @PostMapping("/usuarios/registrar-usuario")
     public ResponseEntity<IdRespuesta> registrarUsuario(@RequestBody RegistrarUsuarioSolicitud solicitud) {
@@ -44,6 +43,98 @@ public class Controlador {
         return usuarioServicio.iniciarSesion(solicitud)
                 .map(id -> ResponseEntity.ok(new IdRespuesta(id)))
                 .orElse(ResponseEntity.badRequest().build());
+    }
+
+    // Endpoints para Gestión de Campos y Parcelas
+
+    @PostMapping("/campos")
+    public ResponseEntity<IdRespuesta> registrarCampo(@RequestBody RegistrarCampoSolicitud solicitud) {
+        String id = campoServicio.registrarCampo(solicitud);
+
+        return ResponseEntity.ok(new IdRespuesta(id));
+    }
+
+    @GetMapping("/campos")
+    public ResponseEntity<ResultadosRespuesta> mostrarCampos() {
+        List<Campo> campos = campoServicio.mostrarCampos();
+
+        return ResponseEntity.ok(new ResultadosRespuesta(campos));
+    }
+
+    @GetMapping("/campos/{id}")
+    public ResponseEntity<ResultadosRespuesta> mostrarCampo(@PathVariable String id) {
+
+        Campo campo = campoServicio.mostrarCampo(id);
+
+        if (campo == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(new ResultadosRespuesta(singletonList(campo)));
+    }
+
+    @PatchMapping("/campos/{id}")
+    public ResponseEntity<IdRespuesta> actualizarCampo(@PathVariable String id, @RequestBody RegistrarCampoSolicitud solicitud) {
+        return Optional.ofNullable(campoServicio.actualizarCampo(id, solicitud))
+                .map(idCampo -> ResponseEntity.ok(new IdRespuesta(idCampo)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/campos/{id}")
+    public ResponseEntity<ResultadosRespuesta> eliminarCampo(@PathVariable String id) {
+        boolean campoEliminado = campoServicio.eliminarCampo(id);
+
+        if (!campoEliminado) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.noContent().build();
+
+    }
+
+    @PostMapping("/campos/{id}/parcelas")
+    public ResponseEntity<IdRespuesta> registrarParcela(@RequestBody RegistrarParcelaSolicitud solicitud) {
+        String id = parcelaServicio.registrarParcela(solicitud);
+
+        return ResponseEntity.ok(new IdRespuesta(id));
+    }
+
+    @GetMapping("/campos/{id}/parcelas")
+    public ResponseEntity<ResultadosRespuesta> mostrarParcelas() {
+        List<Parcela> parcelas = parcelaServicio.mostrarParcelas();
+
+        return ResponseEntity.ok(new ResultadosRespuesta(parcelas));
+    }
+
+    @GetMapping("/parcelas/{id}")
+    public ResponseEntity<ResultadosRespuesta> mostrarParcela(@PathVariable String id) {
+
+        Parcela parcela = parcelaServicio.mostrarParcela(id);
+
+        if (parcela == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(new ResultadosRespuesta(singletonList(parcela)));
+    }
+
+    @PatchMapping("/parcelas/{id}")
+    public ResponseEntity<IdRespuesta> actualizarParcela(@PathVariable String id, @RequestBody RegistrarParcelaSolicitud solicitud) {
+        return Optional.ofNullable(parcelaServicio.actualizarParcela(id, solicitud))
+                .map(idParcela -> ResponseEntity.ok(new IdRespuesta(idParcela)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/parcelas/{id}")
+    public ResponseEntity<ResultadosRespuesta> eliminarParcela(@PathVariable String id) {
+        boolean parcelaEliminada = parcelaServicio.eliminarParcela(id);
+
+        if (!parcelaEliminada) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.noContent().build();
+
     }
 
     // Endpoints para Inventario de Semillas
@@ -93,7 +184,7 @@ public class Controlador {
 
     }
 
-    // Endpoints para inventario de granos
+    // Endpoints para Inventario de Granos
 
     @PostMapping("/inventarios/granos")
     public ResponseEntity<IdRespuesta> registrarGranos(@RequestBody RegistrarGranosSolicitud solicitud) {

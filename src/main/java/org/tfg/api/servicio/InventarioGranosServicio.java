@@ -39,14 +39,14 @@ public class InventarioGranosServicio {
 
     public String actualizarGrano(String id, RegistrarGranosSolicitud solicitud) {
         return inventarioGranosRepositorio.findById(id)
-                .map(g -> g.toBuilder()
+                .map(grano -> grano.toBuilder()
                         .grano(solicitud.getGrano())
                         .variedad(solicitud.getVariedad())
                         .cantidadAlmacenada(solicitud.getCantidadAlmacenada())
                         .fechaCosecha(solicitud.getFechaCosecha())
                         .ubicacionAlmacenamiento(solicitud.getUbicacionAlmacenamiento())
                         .build())
-                .map(g -> inventarioGranosRepositorio.save(g))
+                .map(grano -> inventarioGranosRepositorio.save(grano))
                 .map(InventarioGranos::getId)
                 .orElse(null);
     }
