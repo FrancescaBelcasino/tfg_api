@@ -1,6 +1,6 @@
 # TFG API
 
-Interfaz Programable de Aplicación para Trabajo Final de Grado de Ingeneria en Software
+Interfaz Programable de Aplicación para Trabajo Final de Grado de Ingeniería en Software
 
 ## Instalación
 
