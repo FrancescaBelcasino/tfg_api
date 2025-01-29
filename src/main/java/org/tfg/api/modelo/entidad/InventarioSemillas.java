@@ -13,9 +13,9 @@ import java.time.LocalDate;
 public class InventarioSemillas {
     @Id
     private String id;
-    private String semilla;
     private String variedad;
-    private double cantidadDisponible;
+    private String proveedor;
+    private String cantidad;
     private LocalDate fechaAdquisicion;
     private LocalDate fechaExpiracion;
 }
