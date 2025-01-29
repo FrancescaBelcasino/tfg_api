@@ -12,9 +12,9 @@ import java.time.LocalDate;
 
 public class RegistrarSemillasSolicitud {
     private String id;
-    private String semilla;
     private String variedad;
-    private double cantidadDisponible;
+    private String proveedor;
+    private String cantidad;
     private LocalDate fechaAdquisicion;
     private LocalDate fechaExpiracion;
 }

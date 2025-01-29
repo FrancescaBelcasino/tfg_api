@@ -17,9 +17,9 @@ public class InventarioSemillasServicio {
     public String registrarSemillas(RegistrarSemillasSolicitud solicitud) {
         InventarioSemillas inventarioSemillas = inventarioSemillasRepositorio.save(
                 InventarioSemillas.builder()
-                        .semilla(solicitud.getSemilla())
                         .variedad(solicitud.getVariedad())
-                        .cantidadDisponible(solicitud.getCantidadDisponible())
+                        .proveedor(solicitud.getProveedor())
+                        .cantidad(solicitud.getCantidad())
                         .fechaAdquisicion(solicitud.getFechaAdquisicion())
                         .fechaExpiracion(solicitud.getFechaExpiracion())
                         .build()
@@ -39,9 +39,9 @@ public class InventarioSemillasServicio {
     public String actualizarSemilla(String id, RegistrarSemillasSolicitud solicitud) {
         return inventarioSemillasRepositorio.findById(id)
                 .map(semilla -> semilla.toBuilder()
-                        .semilla(solicitud.getSemilla())
                         .variedad(solicitud.getVariedad())
-                        .cantidadDisponible(solicitud.getCantidadDisponible())
+                        .proveedor(solicitud.getProveedor())
+                        .cantidad(solicitud.getCantidad())
                         .fechaAdquisicion(solicitud.getFechaAdquisicion())
                         .fechaExpiracion(solicitud.getFechaExpiracion())
                         .build())
