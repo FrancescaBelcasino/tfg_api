@@ -12,9 +12,10 @@ import java.time.LocalDate;
 
 public class RegistrarGranosSolicitud {
     private String id;
-    private String grano;
+    private String nombre;
     private String variedad;
-    private double cantidadAlmacenada;
+    private Double cantidad;
     private LocalDate fechaCosecha;
     private String ubicacionAlmacenamiento;
+    private String calidad;
 }

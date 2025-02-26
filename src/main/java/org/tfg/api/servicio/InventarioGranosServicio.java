@@ -18,11 +18,12 @@ public class InventarioGranosServicio {
     public String registrarGranos(RegistrarGranosSolicitud solicitud) {
         InventarioGranos inventarioGranos = inventarioGranosRepositorio.save(
                 InventarioGranos.builder()
-                        .grano(solicitud.getGrano())
+                        .nombre(solicitud.getNombre())
                         .variedad(solicitud.getVariedad())
-                        .cantidadAlmacenada(solicitud.getCantidadAlmacenada())
+                        .cantidad(solicitud.getCantidad())
                         .fechaCosecha(solicitud.getFechaCosecha())
                         .ubicacionAlmacenamiento(solicitud.getUbicacionAlmacenamiento())
+                        .calidad(solicitud.getCalidad())
                         .build()
         );
 
@@ -40,11 +41,12 @@ public class InventarioGranosServicio {
     public String actualizarGrano(String id, RegistrarGranosSolicitud solicitud) {
         return inventarioGranosRepositorio.findById(id)
                 .map(grano -> grano.toBuilder()
-                        .grano(solicitud.getGrano())
+                        .nombre(solicitud.getNombre())
                         .variedad(solicitud.getVariedad())
-                        .cantidadAlmacenada(solicitud.getCantidadAlmacenada())
+                        .cantidad(solicitud.getCantidad())
                         .fechaCosecha(solicitud.getFechaCosecha())
                         .ubicacionAlmacenamiento(solicitud.getUbicacionAlmacenamiento())
+                        .calidad(solicitud.getCalidad())
                         .build())
                 .map(grano -> inventarioGranosRepositorio.save(grano))
                 .map(InventarioGranos::getId)
