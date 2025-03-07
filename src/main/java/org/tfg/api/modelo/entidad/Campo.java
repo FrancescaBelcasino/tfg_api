@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Builder(toBuilder = true)
@@ -14,8 +15,7 @@ public class Campo {
     @Id
     private String id;
     private String nombre;
-    private String latitud;
-    private String longitud;
+    private List<List<Double>> coordenadas;
     private String estado;
     private Double superficie;
     private ArrayList<Parcela> parcelas;

@@ -20,7 +20,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @RestController
 @AllArgsConstructor
-@CrossOrigin(origins = "*", methods = {GET, POST, PATCH})
+@CrossOrigin(origins = "*", methods = {GET, POST, PATCH, DELETE})
 
 public class Controlador {
     private UsuarioServicio usuarioServicio;
@@ -92,14 +92,14 @@ public class Controlador {
 
     }
 
-    @PostMapping("/campos/{id}/parcelas")
+    @PostMapping("/parcelas")
     public ResponseEntity<IdRespuesta> registrarParcela(@RequestBody RegistrarParcelaSolicitud solicitud) {
         String id = parcelaServicio.registrarParcela(solicitud);
 
         return ResponseEntity.ok(new IdRespuesta(id));
     }
 
-    @GetMapping("/campos/{id}/parcelas")
+    @GetMapping("/parcelas")
     public ResponseEntity<ResultadosRespuesta> mostrarParcelas() {
         List<Parcela> parcelas = parcelaServicio.mostrarParcelas();
 
@@ -201,9 +201,15 @@ public class Controlador {
     }
 
     @GetMapping("/inventarios/granos/{id}")
-    public ResponseEntity<ResultadosRespuesta> mostrarGrano() {
+    public ResponseEntity<ResultadosRespuesta> mostrarGrano(@PathVariable String id) {
 
-        return ResponseEntity.ok(new ResultadosRespuesta(null));
+        InventarioGranos grano = inventarioGranosServicio.mostrarGrano(id);
+
+        if (grano == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(new ResultadosRespuesta(singletonList(grano)));
     }
 
     @PatchMapping("/inventarios/granos/{id}")
@@ -214,8 +220,14 @@ public class Controlador {
     }
 
     @DeleteMapping("/inventarios/granos/{id}")
-    public ResponseEntity<ResultadosRespuesta> eliminarGrano() {
+    public ResponseEntity<ResultadosRespuesta> eliminarGrano(@PathVariable String id) {
+        boolean granoEliminado = inventarioGranosServicio.eliminarGrano(id);
 
-        return ResponseEntity.ok(new ResultadosRespuesta(null));
+        if (!granoEliminado) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.noContent().build();
+
     }
 }
