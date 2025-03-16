@@ -15,6 +15,14 @@ import java.util.Optional;
 public class CampoServicio {
     private CampoRepositorio campoRepositorio;
 
+    public List<Campo> mostrarCampos() {
+        return campoRepositorio.findAll();
+    }
+
+    public Campo mostrarCampo(String id) {
+        return campoRepositorio.findById(id).orElse(null);
+    }
+
     public String registrarCampo(RegistrarCampoSolicitud solicitud) {
         Campo campo = campoRepositorio.save(
                 Campo.builder()
@@ -26,14 +34,6 @@ public class CampoServicio {
         );
 
         return campo.getId();
-    }
-
-    public List<Campo> mostrarCampos() {
-        return campoRepositorio.findAll();
-    }
-
-    public Campo mostrarCampo(String id) {
-        return campoRepositorio.findById(id).orElse(null);
     }
 
     public String actualizarCampo(String id, RegistrarCampoSolicitud solicitud) {

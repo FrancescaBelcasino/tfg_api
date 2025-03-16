@@ -7,7 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-
 public class IniciarSesionSolicitud {
     private String email;
     private String contrasena;

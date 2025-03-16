@@ -6,17 +6,16 @@ import org.springframework.web.bind.annotation.*;
 import org.tfg.api.modelo.dto.respuesta.IdRespuesta;
 import org.tfg.api.modelo.dto.respuesta.ResultadosRespuesta;
 import org.tfg.api.modelo.dto.solicitud.*;
-import org.tfg.api.modelo.entidad.Campo;
-import org.tfg.api.modelo.entidad.InventarioGranos;
-import org.tfg.api.modelo.entidad.InventarioSemillas;
-import org.tfg.api.modelo.entidad.Parcela;
+import org.tfg.api.modelo.entidad.*;
 import org.tfg.api.servicio.*;
 
 import java.util.List;
 import java.util.Optional;
 
+import static java.lang.Boolean.FALSE;
 import static java.util.Collections.singletonList;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
+import static org.tfg.api.modelo.entidad.Usuario.Rol.ADMINISTRADOR;
 
 @RestController
 @AllArgsConstructor
@@ -47,13 +46,6 @@ public class Controlador {
 
     // Endpoints para Gestión de Campos y Parcelas
 
-    @PostMapping("/campos")
-    public ResponseEntity<IdRespuesta> registrarCampo(@RequestBody RegistrarCampoSolicitud solicitud) {
-        String id = campoServicio.registrarCampo(solicitud);
-
-        return ResponseEntity.ok(new IdRespuesta(id));
-    }
-
     @GetMapping("/campos")
     public ResponseEntity<ResultadosRespuesta> mostrarCampos() {
         List<Campo> campos = campoServicio.mostrarCampos();
@@ -73,15 +65,30 @@ public class Controlador {
         return ResponseEntity.ok(new ResultadosRespuesta(singletonList(campo)));
     }
 
+    @PostMapping("/campos")
+    public ResponseEntity<IdRespuesta> registrarCampo(@RequestHeader("Usuario-ID") String usuarioId, @RequestBody RegistrarCampoSolicitud solicitud) {
+        if (FALSE.equals(usuarioServicio.validarRol(usuarioId, ADMINISTRADOR)))
+            return ResponseEntity.badRequest().build();
+        String id = campoServicio.registrarCampo(solicitud);
+
+        return ResponseEntity.ok(new IdRespuesta(id));
+    }
+
     @PatchMapping("/campos/{id}")
-    public ResponseEntity<IdRespuesta> actualizarCampo(@PathVariable String id, @RequestBody RegistrarCampoSolicitud solicitud) {
+    public ResponseEntity<IdRespuesta> actualizarCampo(@PathVariable String id, @RequestHeader("Usuario-ID") String usuarioId, @RequestBody RegistrarCampoSolicitud solicitud) {
+        if (FALSE.equals(usuarioServicio.validarRol(usuarioId, ADMINISTRADOR)))
+            return ResponseEntity.badRequest().build();
+
         return Optional.ofNullable(campoServicio.actualizarCampo(id, solicitud))
                 .map(idCampo -> ResponseEntity.ok(new IdRespuesta(idCampo)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/campos/{id}")
-    public ResponseEntity<ResultadosRespuesta> eliminarCampo(@PathVariable String id) {
+    public ResponseEntity<ResultadosRespuesta> eliminarCampo(@PathVariable String id, @RequestHeader("Usuario-ID") String usuarioId) {
+        if (FALSE.equals(usuarioServicio.validarRol(usuarioId, ADMINISTRADOR)))
+            return ResponseEntity.badRequest().build();
+
         boolean campoEliminado = campoServicio.eliminarCampo(id);
 
         if (!campoEliminado) {
@@ -90,13 +97,6 @@ public class Controlador {
 
         return ResponseEntity.noContent().build();
 
-    }
-
-    @PostMapping("/parcelas")
-    public ResponseEntity<IdRespuesta> registrarParcela(@RequestBody RegistrarParcelaSolicitud solicitud) {
-        String id = parcelaServicio.registrarParcela(solicitud);
-
-        return ResponseEntity.ok(new IdRespuesta(id));
     }
 
     @GetMapping("/parcelas")
@@ -118,15 +118,31 @@ public class Controlador {
         return ResponseEntity.ok(new ResultadosRespuesta(singletonList(parcela)));
     }
 
+    @PostMapping("/parcelas")
+    public ResponseEntity<IdRespuesta> registrarParcela(@RequestBody RegistrarParcelaSolicitud solicitud, @RequestHeader("Usuario-ID") String usuarioId) {
+        if (FALSE.equals(usuarioServicio.validarRol(usuarioId, ADMINISTRADOR)))
+            return ResponseEntity.badRequest().build();
+
+        String id = parcelaServicio.registrarParcela(solicitud);
+
+        return ResponseEntity.ok(new IdRespuesta(id));
+    }
+
     @PatchMapping("/parcelas/{id}")
-    public ResponseEntity<IdRespuesta> actualizarParcela(@PathVariable String id, @RequestBody RegistrarParcelaSolicitud solicitud) {
+    public ResponseEntity<IdRespuesta> actualizarParcela(@PathVariable String id, @RequestHeader("Usuario-ID") String usuarioId, @RequestBody RegistrarParcelaSolicitud solicitud) {
+        if (FALSE.equals(usuarioServicio.validarRol(usuarioId, ADMINISTRADOR)))
+            return ResponseEntity.badRequest().build();
+
         return Optional.ofNullable(parcelaServicio.actualizarParcela(id, solicitud))
                 .map(idParcela -> ResponseEntity.ok(new IdRespuesta(idParcela)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/parcelas/{id}")
-    public ResponseEntity<ResultadosRespuesta> eliminarParcela(@PathVariable String id) {
+    public ResponseEntity<ResultadosRespuesta> eliminarParcela(@PathVariable String id, @RequestHeader("Usuario-ID") String usuarioId) {
+        if (FALSE.equals(usuarioServicio.validarRol(usuarioId, ADMINISTRADOR)))
+            return ResponseEntity.badRequest().build();
+
         boolean parcelaEliminada = parcelaServicio.eliminarParcela(id);
 
         if (!parcelaEliminada) {

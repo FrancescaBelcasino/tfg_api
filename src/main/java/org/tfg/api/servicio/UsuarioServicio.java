@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.tfg.api.modelo.dto.solicitud.IniciarSesionSolicitud;
 import org.tfg.api.modelo.dto.solicitud.RegistrarUsuarioSolicitud;
 import org.tfg.api.modelo.entidad.Usuario;
+import org.tfg.api.modelo.entidad.Usuario.Rol;
 import org.tfg.api.repositorio.UsuarioRepositorio;
 
 import java.util.HashMap;
@@ -52,6 +53,14 @@ public class UsuarioServicio {
                     return valido;
                 })
                 .map(Usuario::getId);
+    }
+
+    public Boolean validarRol(String id, Rol rol) {
+        return usuarioRepositorio
+                .findById(id)
+                .map(Usuario::getRol)
+                .map(r -> r.equals(rol))
+                .orElse(false);
     }
 
     private void manejarIntentoFallido(String email) {

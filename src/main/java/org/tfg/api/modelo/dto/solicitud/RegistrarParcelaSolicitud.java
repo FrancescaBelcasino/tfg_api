@@ -9,7 +9,6 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-
 public class RegistrarParcelaSolicitud {
     private String id;
     private String nombre;

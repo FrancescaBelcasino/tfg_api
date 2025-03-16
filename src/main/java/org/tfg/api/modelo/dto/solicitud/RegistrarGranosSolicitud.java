@@ -9,7 +9,6 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @NoArgsConstructor
-
 public class RegistrarGranosSolicitud {
     private String id;
     private String nombre;
