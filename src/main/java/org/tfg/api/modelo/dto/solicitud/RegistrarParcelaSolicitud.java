@@ -15,6 +15,8 @@ public class RegistrarParcelaSolicitud {
     private String nombre;
     private List<List<Double>> coordenadas;
     private String estado;
-    private String campoId;
+    private List<String> caracteristicas;
+    private String semilla;
+    private Double cantidadSembrada;
     private Double superficie;
 }
