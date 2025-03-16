@@ -13,4 +13,10 @@ public class Usuario {
     private String id;
     private String email;
     private String contrasena;
+    private Rol rol;
+
+    public enum Rol {
+        ADMINISTRADOR,
+        ESTANDAR
+    }
 }

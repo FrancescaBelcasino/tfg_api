@@ -1,16 +1,18 @@
 package org.tfg.api.servicio;
-import org.springframework.security.crypto.bcrypt.BCrypt;
+
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.tfg.api.modelo.dto.solicitud.IniciarSesionSolicitud;
 import org.tfg.api.modelo.dto.solicitud.RegistrarUsuarioSolicitud;
 import org.tfg.api.modelo.entidad.Usuario;
 import org.tfg.api.repositorio.UsuarioRepositorio;
 
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import static org.tfg.api.modelo.entidad.Usuario.Rol.ESTANDAR;
 
 @Service
 @AllArgsConstructor
@@ -30,6 +32,7 @@ public class UsuarioServicio {
                 Usuario.builder()
                         .email(solicitud.getEmail())
                         .contrasena(contrasenaCifrada)
+                        .rol(ESTANDAR)
                         .build()
         );
 
