@@ -6,7 +6,10 @@ import org.springframework.web.bind.annotation.*;
 import org.tfg.api.modelo.dto.respuesta.IdRespuesta;
 import org.tfg.api.modelo.dto.respuesta.ResultadosRespuesta;
 import org.tfg.api.modelo.dto.solicitud.*;
-import org.tfg.api.modelo.entidad.*;
+import org.tfg.api.modelo.entidad.Campo;
+import org.tfg.api.modelo.entidad.InventarioGranos;
+import org.tfg.api.modelo.entidad.InventarioSemillas;
+import org.tfg.api.modelo.entidad.Parcela;
 import org.tfg.api.servicio.*;
 
 import java.util.List;
@@ -27,8 +30,17 @@ public class Controlador {
     private ParcelaServicio parcelaServicio;
     private InventarioSemillasServicio inventarioSemillasServicio;
     private InventarioGranosServicio inventarioGranosServicio;
+    private RespaldoServicio respaldoServicio;
 
-    // Endpoints para Registro e Inicio de Sesión Genéricos
+    @GetMapping("/respaldos/data")
+    public void ejecutarBackup() {
+        respaldoServicio.backupLocalData();
+    }
+
+    @GetMapping("/respaldos/github")
+    public void ejecutarBackupGitHub() {
+        respaldoServicio.syncWithGitHub();
+    }
 
     @PostMapping("/usuarios/registrar-usuario")
     public ResponseEntity<IdRespuesta> registrarUsuario(@RequestBody RegistrarUsuarioSolicitud solicitud) {
@@ -43,8 +55,6 @@ public class Controlador {
                 .map(id -> ResponseEntity.ok(new IdRespuesta(id)))
                 .orElse(ResponseEntity.badRequest().build());
     }
-
-    // Endpoints para Gestión de Campos y Parcelas
 
     @GetMapping("/campos")
     public ResponseEntity<ResultadosRespuesta> mostrarCampos() {
@@ -153,8 +163,6 @@ public class Controlador {
 
     }
 
-    // Endpoints para Inventario de Semillas
-
     @PostMapping("/inventarios/semillas")
     public ResponseEntity<IdRespuesta> registrarSemillas(@RequestBody RegistrarSemillasSolicitud solicitud) {
         String id = inventarioSemillasServicio.registrarSemillas(solicitud);
@@ -199,8 +207,6 @@ public class Controlador {
         return ResponseEntity.noContent().build();
 
     }
-
-    // Endpoints para Inventario de Granos
 
     @PostMapping("/inventarios/granos")
     public ResponseEntity<IdRespuesta> registrarGranos(@RequestBody RegistrarGranosSolicitud solicitud) {

@@ -5,3 +5,4 @@ spring:
     mongodb:
       uri: ${DB_CONNECTION_STRING}
       database: tfg
+      port: 27017
