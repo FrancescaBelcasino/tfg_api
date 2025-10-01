@@ -13,8 +13,8 @@ import java.util.logging.Logger;
 @Service
 public class RespaldoServicio {
     private static final Logger logger = Logger.getLogger(RespaldoServicio.class.getName());
-    private static final String SOURCE_DIR = "C:/Sistema de Gestión Agropecuaria";
-    private static final String BACKUP_DIR = "C:/respaldos/";
+    private static final String SOURCE_DIR = System.getenv("SOURCE_DIR");
+    private static final String BACKUP_DIR = System.getenv("BACKUP_DIR");
 
     @Scheduled(cron = "0 0 23 * * ?")
     public void backupLocalData() {
@@ -41,9 +41,9 @@ public class RespaldoServicio {
                 }
             });
 
-            logger.info("✅ Copia de seguridad creada en: " + backupPath);
+            logger.info("Copia de seguridad creada en: " + backupPath);
         } catch (IOException e) {
-            logger.severe("❌ Error en el respaldo: " + e.getMessage());
+            logger.severe("Error en el respaldo: " + e.getMessage());
         }
     }
 
@@ -58,9 +58,9 @@ public class RespaldoServicio {
             Process process = pb.start();
             process.waitFor();
 
-            logger.info("✅ Código sincronizado con GitHub.");
+            logger.info("Código sincronizado con GitHub.");
         } catch (IOException | InterruptedException e) {
-            logger.severe("❌ Error en sincronización con GitHub: " + e.getMessage());
+            logger.severe("Error en sincronización con GitHub: " + e.getMessage());
         }
     }
 }

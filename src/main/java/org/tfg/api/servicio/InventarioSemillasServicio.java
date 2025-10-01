@@ -2,7 +2,9 @@ package org.tfg.api.servicio;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.tfg.api.modelo.dto.solicitud.RegistrarSemillasSolicitud;
+import org.tfg.api.excepcion.RecursoNoEncontradoException;
+import org.tfg.api.excepcion.SolicitudInvalidaException;
+import org.tfg.api.modelo.dto.solicitud.RegistrarSemillaSolicitud;
 import org.tfg.api.modelo.entidad.InventarioSemillas;
 import org.tfg.api.repositorio.InventarioSemillasRepositorio;
 
@@ -12,11 +14,25 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class InventarioSemillasServicio {
-    private InventarioSemillasRepositorio inventarioSemillasRepositorio;
+    private final InventarioSemillasRepositorio inventarioSemillasRepositorio;
 
-    public String registrarSemillas(RegistrarSemillasSolicitud solicitud) {
+    public List<InventarioSemillas> obtenerSemillas(String adminId) {
+        return inventarioSemillasRepositorio.findByAdminId(adminId);
+    }
+
+    public InventarioSemillas obtenerSemillaPorId(String id, String adminId) {
+        return Optional.ofNullable(inventarioSemillasRepositorio.findByIdAndAdminId(id, adminId))
+                .orElseThrow(() -> new RecursoNoEncontradoException("Semilla no encontrada con ID: " + id));
+    }
+
+    public String registrarSemilla(RegistrarSemillaSolicitud solicitud, String adminId) {
+        if (solicitud.getNombre() == null || solicitud.getCantidad() == null) {
+            throw new SolicitudInvalidaException("Nombre y cantidad son obligatorios para registrar una semilla.");
+        }
+
         InventarioSemillas inventarioSemillas = inventarioSemillasRepositorio.save(
                 InventarioSemillas.builder()
+                        .adminId(adminId)
                         .nombre(solicitud.getNombre())
                         .variedad(solicitud.getVariedad())
                         .proveedor(solicitud.getProveedor())
@@ -25,43 +41,31 @@ public class InventarioSemillasServicio {
                         .fechaExpiracion(solicitud.getFechaExpiracion())
                         .build()
         );
-
         return inventarioSemillas.getId();
     }
 
-    public List<InventarioSemillas> mostrarSemillas() {
-        return inventarioSemillasRepositorio.findAll();
+    public String actualizarSemilla(String id, RegistrarSemillaSolicitud solicitud, String adminId) {
+        InventarioSemillas semillaExistente = Optional.ofNullable(inventarioSemillasRepositorio.findByIdAndAdminId(id, adminId))
+                .orElseThrow(() -> new RecursoNoEncontradoException("Semilla no encontrada con ID: " + id));
+
+        InventarioSemillas actualizada = inventarioSemillasRepositorio.save(
+                semillaExistente.toBuilder()
+                        .nombre(Optional.ofNullable(solicitud.getNombre()).orElse(semillaExistente.getNombre()))
+                        .variedad(Optional.ofNullable(solicitud.getVariedad()).orElse(semillaExistente.getVariedad()))
+                        .proveedor(Optional.ofNullable(solicitud.getProveedor()).orElse(semillaExistente.getProveedor()))
+                        .cantidad(Optional.ofNullable(solicitud.getCantidad()).orElse(semillaExistente.getCantidad()))
+                        .fechaAdquisicion(Optional.ofNullable(solicitud.getFechaAdquisicion()).orElse(semillaExistente.getFechaAdquisicion()))
+                        .fechaExpiracion(Optional.ofNullable(solicitud.getFechaExpiracion()).orElse(semillaExistente.getFechaExpiracion()))
+                        .build()
+        );
+        return actualizada.getId();
     }
 
-    public InventarioSemillas mostrarSemilla(String id) {
-        return inventarioSemillasRepositorio.findById(id).orElse(null);
-    }
+    public boolean eliminarSemilla(String id, String adminId) {
+        InventarioSemillas semilla = Optional.ofNullable(inventarioSemillasRepositorio.findByIdAndAdminId(id, adminId))
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se puede eliminar: semilla no encontrada con ID: " + id));
 
-    public String actualizarSemilla(String id, RegistrarSemillasSolicitud solicitud) {
-        return inventarioSemillasRepositorio.findById(id)
-                .map(semilla -> semilla.toBuilder()
-                        .nombre(solicitud.getNombre() == null ? semilla.getNombre() : solicitud.getNombre())
-                        .variedad(solicitud.getVariedad() == null ? semilla.getVariedad() : solicitud.getVariedad())
-                        .proveedor(solicitud.getProveedor() == null ? semilla.getProveedor() : solicitud.getProveedor())
-                        .cantidad(solicitud.getCantidad() == null ? semilla.getCantidad() : solicitud.getCantidad())
-                        .fechaAdquisicion(solicitud.getFechaAdquisicion() == null ? semilla.getFechaAdquisicion() : solicitud.getFechaAdquisicion())
-                        .fechaExpiracion(solicitud.getFechaExpiracion() == null ? semilla.getFechaExpiracion() : solicitud.getFechaExpiracion())
-                        .build())
-                .map(semilla -> inventarioSemillasRepositorio.save(semilla))
-                .map(InventarioSemillas::getId)
-                .orElse(null);
-    }
-
-    public boolean eliminarSemilla(String id) {
-        Optional<InventarioSemillas> optionalSemilla = inventarioSemillasRepositorio.findById(id);
-
-        if (!optionalSemilla.isPresent()) {
-            return false;
-        }
-
-        inventarioSemillasRepositorio.deleteById(id);
-
+        inventarioSemillasRepositorio.delete(semilla);
         return true;
     }
-
 }

@@ -2,7 +2,9 @@ package org.tfg.api.servicio;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.tfg.api.modelo.dto.solicitud.RegistrarGranosSolicitud;
+import org.tfg.api.excepcion.RecursoNoEncontradoException;
+import org.tfg.api.excepcion.SolicitudInvalidaException;
+import org.tfg.api.modelo.dto.solicitud.RegistrarGranoSolicitud;
 import org.tfg.api.modelo.entidad.InventarioGranos;
 import org.tfg.api.repositorio.InventarioGranosRepositorio;
 
@@ -11,13 +13,26 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-
 public class InventarioGranosServicio {
-    private InventarioGranosRepositorio inventarioGranosRepositorio;
+    private final InventarioGranosRepositorio inventarioGranosRepositorio;
 
-    public String registrarGranos(RegistrarGranosSolicitud solicitud) {
+    public List<InventarioGranos> obtenerGranos(String adminId) {
+        return inventarioGranosRepositorio.findByAdminId(adminId);
+    }
+
+    public InventarioGranos obtenerGranoPorId(String id, String adminId) {
+        return Optional.ofNullable(inventarioGranosRepositorio.findByIdAndAdminId(id, adminId))
+                .orElseThrow(() -> new RecursoNoEncontradoException("Grano no encontrado con ID: " + id));
+    }
+
+    public String registrarGranos(RegistrarGranoSolicitud solicitud, String adminId) {
+        if (solicitud.getNombre() == null || solicitud.getCantidad() == null) {
+            throw new SolicitudInvalidaException("Nombre y cantidad son obligatorios para registrar un grano.");
+        }
+
         InventarioGranos inventarioGranos = inventarioGranosRepositorio.save(
                 InventarioGranos.builder()
+                        .adminId(adminId)
                         .nombre(solicitud.getNombre())
                         .variedad(solicitud.getVariedad())
                         .cantidad(solicitud.getCantidad())
@@ -26,43 +41,31 @@ public class InventarioGranosServicio {
                         .calidad(solicitud.getCalidad())
                         .build()
         );
-
         return inventarioGranos.getId();
     }
 
-    public List<InventarioGranos> mostrarGranos() {
-        return inventarioGranosRepositorio.findAll();
+    public String actualizarGrano(String id, RegistrarGranoSolicitud solicitud, String adminId) {
+        InventarioGranos granoExistente = Optional.ofNullable(inventarioGranosRepositorio.findByIdAndAdminId(id, adminId))
+                .orElseThrow(() -> new RecursoNoEncontradoException("Grano no encontrado con ID: " + id));
+
+        InventarioGranos actualizado = inventarioGranosRepositorio.save(
+                granoExistente.toBuilder()
+                        .nombre(Optional.ofNullable(solicitud.getNombre()).orElse(granoExistente.getNombre()))
+                        .variedad(Optional.ofNullable(solicitud.getVariedad()).orElse(granoExistente.getVariedad()))
+                        .cantidad(Optional.ofNullable(solicitud.getCantidad()).orElse(granoExistente.getCantidad()))
+                        .fechaCosecha(Optional.ofNullable(solicitud.getFechaCosecha()).orElse(granoExistente.getFechaCosecha()))
+                        .ubicacionAlmacenamiento(Optional.ofNullable(solicitud.getUbicacionAlmacenamiento()).orElse(granoExistente.getUbicacionAlmacenamiento()))
+                        .calidad(Optional.ofNullable(solicitud.getCalidad()).orElse(granoExistente.getCalidad()))
+                        .build()
+        );
+        return actualizado.getId();
     }
 
-    public InventarioGranos mostrarGrano(String id) {
-        return inventarioGranosRepositorio.findById(id).orElse(null);
-    }
+    public boolean eliminarGrano(String id, String adminId) {
+        InventarioGranos grano = Optional.ofNullable(inventarioGranosRepositorio.findByIdAndAdminId(id, adminId))
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se puede eliminar: grano no encontrado con ID: " + id));
 
-    public String actualizarGrano(String id, RegistrarGranosSolicitud solicitud) {
-        return inventarioGranosRepositorio.findById(id)
-                .map(grano -> grano.toBuilder()
-                        .nombre(solicitud.getNombre())
-                        .variedad(solicitud.getVariedad())
-                        .cantidad(solicitud.getCantidad())
-                        .fechaCosecha(solicitud.getFechaCosecha())
-                        .ubicacionAlmacenamiento(solicitud.getUbicacionAlmacenamiento())
-                        .calidad(solicitud.getCalidad())
-                        .build())
-                .map(grano -> inventarioGranosRepositorio.save(grano))
-                .map(InventarioGranos::getId)
-                .orElse(null);
-    }
-
-    public boolean eliminarGrano(String id) {
-        Optional<InventarioGranos> optionalGrano = inventarioGranosRepositorio.findById(id);
-
-        if (!optionalGrano.isPresent()) {
-            return false;
-        }
-
-        inventarioGranosRepositorio.deleteById(id);
-
+        inventarioGranosRepositorio.delete(grano);
         return true;
     }
-
 }

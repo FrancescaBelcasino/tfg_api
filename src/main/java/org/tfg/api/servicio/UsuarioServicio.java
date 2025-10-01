@@ -1,26 +1,32 @@
 package org.tfg.api.servicio;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
+import org.tfg.api.modelo.dto.solicitud.CambiarContrasenaSolicitud;
 import org.tfg.api.modelo.dto.solicitud.IniciarSesionSolicitud;
 import org.tfg.api.modelo.dto.solicitud.RegistrarUsuarioSolicitud;
 import org.tfg.api.modelo.entidad.Usuario;
-import org.tfg.api.modelo.entidad.Usuario.Rol;
 import org.tfg.api.repositorio.UsuarioRepositorio;
+import org.tfg.api.seguridad.JwtUtil;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.tfg.api.modelo.entidad.Usuario.Rol.ESTANDAR;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UsuarioServicio {
-    private UsuarioRepositorio usuarioRepositorio;
-    private Map<String, Integer> intentosFallidos = new HashMap<>();
     private static final int MAX_INTENTOS = 5;
+    private static final String RECOVERY_FRONTEND = "http://localhost:5500/reset-password.html?token=";
+    private final UsuarioRepositorio usuarioRepositorio;
+    private final EmailServicio emailServicio;
+    private final JwtUtil jwtUtil;
+    private final Map<String, Integer> intentosFallidos = new HashMap<>();
 
     public String registrarUsuario(RegistrarUsuarioSolicitud solicitud) {
         if (!validarContrasena(solicitud.getContrasena())) {
@@ -34,6 +40,7 @@ public class UsuarioServicio {
                         .email(solicitud.getEmail())
                         .contrasena(contrasenaCifrada)
                         .rol(ESTANDAR)
+                        .adminId(null)
                         .build()
         );
 
@@ -52,26 +59,50 @@ public class UsuarioServicio {
                     }
                     return valido;
                 })
-                .map(Usuario::getId);
-    }
-
-    public Boolean validarRol(String id, Rol rol) {
-        return usuarioRepositorio
-                .findById(id)
-                .map(Usuario::getRol)
-                .map(r -> r.equals(rol))
-                .orElse(false);
+                .map(usuario ->
+                        jwtUtil.generateToken(
+                                usuario.getId(),
+                                usuario.getEmail(),
+                                usuario.getRol().name()
+                        )
+                );
     }
 
     private void manejarIntentoFallido(String email) {
         intentosFallidos.put(email, intentosFallidos.getOrDefault(email, 0) + 1);
-        if (intentosFallidos.get(email) >= MAX_INTENTOS) {
-            enviarCorreoRecuperacion(email);
+        if (intentosFallidos.get(email) == MAX_INTENTOS) {
+            usuarioRepositorio.findByEmail(email).ifPresent(usuario -> {
+                String token = UUID.randomUUID().toString();
+                usuario.setTokenRecuperacion(token);
+                usuario.setTokenExpiracion(LocalDateTime.now().plusMinutes(30));
+                usuarioRepositorio.save(usuario);
+                String url = RECOVERY_FRONTEND + token;
+                emailServicio.enviarCorreoIntentosFallidos(email, url);
+            });
         }
     }
 
-    private void enviarCorreoRecuperacion(String email) {
-        System.out.println("Correo de recuperación enviado a: " + email);
+    public void iniciarRecuperacionContrasena(String email) {
+        usuarioRepositorio.findByEmail(email).ifPresent(usuario -> {
+            String token = UUID.randomUUID().toString();
+            usuario.setTokenRecuperacion(token);
+            usuario.setTokenExpiracion(LocalDateTime.now().plusMinutes(30));
+            usuarioRepositorio.save(usuario);
+            String url = RECOVERY_FRONTEND + token;
+            emailServicio.enviarCorreoCambioContrasena(usuario.getEmail(), url);
+        });
+    }
+
+    public void cambiarContrasenaConToken(CambiarContrasenaSolicitud solicitud) {
+        Usuario usuario = usuarioRepositorio.findByTokenRecuperacion(solicitud.getToken())
+                .orElseThrow(() -> new IllegalArgumentException("Token inválido"));
+        if (usuario.getTokenExpiracion().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Token expirado");
+        }
+        usuario.setContrasena(BCrypt.hashpw(solicitud.getNuevaContrasena(), BCrypt.gensalt()));
+        usuario.setTokenRecuperacion(null);
+        usuario.setTokenExpiracion(null);
+        usuarioRepositorio.save(usuario);
     }
 
     private boolean validarContrasena(String contrasena) {

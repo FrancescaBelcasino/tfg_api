@@ -14,9 +14,12 @@ import java.util.List;
 public class Campo {
     @Id
     private String id;
+    private String usuarioId;
+    private String adminId;
     private String nombre;
     private List<List<Double>> coordenadas;
     private String estado;
     private Double superficie;
+    private Double superficieHa;
     private ArrayList<Parcela> parcelas;
 }

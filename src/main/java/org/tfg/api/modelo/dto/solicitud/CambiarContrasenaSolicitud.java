@@ -7,8 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class RegistrarUsuarioSolicitud {
-    private String email;
-    private String contrasena;
-    private String adminId;
+public class CambiarContrasenaSolicitud {
+    private String token;
+    private String nuevaContrasena;
 }

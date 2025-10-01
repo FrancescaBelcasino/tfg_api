@@ -13,6 +13,8 @@ import java.time.LocalDate;
 public class InventarioGranos {
     @Id
     private String id;
+    private String usuarioId;
+    private String adminId;
     private String nombre;
     private String variedad;
     private Double cantidad;

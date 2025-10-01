@@ -14,5 +14,4 @@ public class RegistrarCampoSolicitud {
     private String nombre;
     private List<List<Double>> coordenadas;
     private String estado;
-    private Double superficie;
 }
