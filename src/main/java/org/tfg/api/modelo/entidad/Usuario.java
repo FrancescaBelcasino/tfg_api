@@ -19,10 +19,12 @@ public class Usuario {
     private String email;
     private String contrasena;
     private Rol rol;
+    private boolean bloqueado;
     private String tokenRecuperacion;
     private LocalDateTime tokenExpiracion;
 
     public enum Rol {
+        ADMINISTRADOR,
         ESTANDAR
     }
 }

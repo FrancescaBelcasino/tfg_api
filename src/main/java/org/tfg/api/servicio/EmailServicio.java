@@ -129,7 +129,8 @@ public class EmailServicio {
                   <div class="container">
                     <h2 style="color: #43a047;">¡Detectamos intentos fallidos de inicio de sesión!</h2>
                     <p>Recibimos <b>5 intentos fallidos</b> de inicio de sesión en tu cuenta.</p>
-                    <p>Si no reconoces esta actividad, te recomendamos cambiar la contraseña de inmediato para proteger tu cuenta.</p>
+                    <p>Por tu seguridad, tu cuenta ha sido <b>bloqueada temporalmente</b>.</p>
+                    <p>Para recuperar el acceso, debés restablecer tu contraseña.</p>
                     <p style="text-align: center; margin: 32px 0;">
                       <a href='%s' class="btn-verde">Cambiar contraseña</a>
                     </p>

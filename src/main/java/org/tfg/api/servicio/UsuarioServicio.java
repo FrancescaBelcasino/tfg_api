@@ -22,7 +22,7 @@ import static org.tfg.api.modelo.entidad.Usuario.Rol.ESTANDAR;
 @RequiredArgsConstructor
 public class UsuarioServicio {
     private static final int MAX_INTENTOS = 5;
-    private static final String RECOVERY_FRONTEND = "http://localhost:5500/reset-password.html?token=";
+    private static final String RECOVERY_FRONTEND = "http://localhost:5500/resetear-contrasena.html?token=";
     private final UsuarioRepositorio usuarioRepositorio;
     private final EmailServicio emailServicio;
     private final JwtUtil jwtUtil;
@@ -40,6 +40,7 @@ public class UsuarioServicio {
                         .email(solicitud.getEmail())
                         .contrasena(contrasenaCifrada)
                         .rol(ESTANDAR)
+                        .bloqueado(false)
                         .adminId(null)
                         .build()
         );
@@ -51,6 +52,10 @@ public class UsuarioServicio {
         return usuarioRepositorio
                 .findByEmail(solicitud.getEmail())
                 .filter(usuario -> {
+                    if (usuario.isBloqueado()) {
+                        throw new IllegalStateException("La cuenta está bloqueada. Revisá tu email para restablecer la contraseña.");
+                    }
+
                     boolean valido = BCrypt.checkpw(solicitud.getContrasena(), usuario.getContrasena());
                     if (!valido) {
                         manejarIntentoFallido(solicitud.getEmail());
@@ -72,6 +77,7 @@ public class UsuarioServicio {
         intentosFallidos.put(email, intentosFallidos.getOrDefault(email, 0) + 1);
         if (intentosFallidos.get(email) == MAX_INTENTOS) {
             usuarioRepositorio.findByEmail(email).ifPresent(usuario -> {
+                usuario.setBloqueado(true);
                 String token = UUID.randomUUID().toString();
                 usuario.setTokenRecuperacion(token);
                 usuario.setTokenExpiracion(LocalDateTime.now().plusMinutes(30));
@@ -102,6 +108,8 @@ public class UsuarioServicio {
         usuario.setContrasena(BCrypt.hashpw(solicitud.getNuevaContrasena(), BCrypt.gensalt()));
         usuario.setTokenRecuperacion(null);
         usuario.setTokenExpiracion(null);
+        usuario.setBloqueado(false);
+        intentosFallidos.remove(usuario.getEmail());
         usuarioRepositorio.save(usuario);
     }
 
