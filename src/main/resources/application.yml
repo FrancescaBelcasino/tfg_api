@@ -9,7 +9,7 @@ spring:
       database: tfg
       port: 27017
   mail:
-    host: smtp.gmail.com
+    host: smtp.sendgrid.net
     port: 587
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
