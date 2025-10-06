@@ -22,7 +22,7 @@ import static org.tfg.api.modelo.entidad.Usuario.Rol.ESTANDAR;
 @RequiredArgsConstructor
 public class UsuarioServicio {
     private static final int MAX_INTENTOS = 5;
-    private static final String RECOVERY_FRONTEND = "http://localhost:5500/resetear-contrasena.html?token=";
+    private static final String RECOVERY_FRONTEND = System.getenv("RECOVERY_FRONTEND");
     private final UsuarioRepositorio usuarioRepositorio;
     private final EmailServicio emailServicio;
     private final JwtUtil jwtUtil;
