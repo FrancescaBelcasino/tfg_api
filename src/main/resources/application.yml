@@ -1,5 +1,6 @@
 server:
   port: ${PORT:8080}
+
 spring:
   application:
     name: api
@@ -8,20 +9,10 @@ spring:
       uri: ${DB_CONNECTION_STRING}
       database: tfg
       port: 27017
-  mail:
-    host: smtp.sendgrid.net
-    port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
+
+sendgrid:
+  api-key: ${MAIL_PASSWORD}
+  from: ${FROM}
+
 jwt:
   secret: ${JWT_SECRET}
